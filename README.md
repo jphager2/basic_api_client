@@ -3,6 +3,8 @@
 gem install basic_api_client
 ```
 
+# Usage
+
 ```ruby
 require 'basic_api_client'
 

@@ -5,12 +5,17 @@ class BasicApiClient
   AUTH_HEADERS = %w{ access-token token-type uid expiry client }.sort
 
   attr_reader :headers
+  attr_accessor :last_response
 
   def initialize(cn, password, site, auth_url)
     @cn = cn
     @password = password
     @site = site
     @auth_url = auth_url
+  end
+
+  def headers
+    @headers ||= {}
   end
 
   def conn
@@ -34,20 +39,24 @@ class BasicApiClient
   end
 
   def get(url, params = {})
+    authorize unless auth_headers?
+
     res = conn.get do |req|
       req.url url
       req.params = params.merge(req.params)
-      req.headers = @headers
+      req.headers = headers
     end
 
     handle_response(res)
   end
 
   def post(url, params = {})
+    authorize unless auth_headers?
+
     res = conn.post do |req|
       req.url url
       req.params = params.merge(req.params)
-      req.headers = @headers
+      req.headers = headers
     end
 
     handle_response(res)
@@ -55,11 +64,17 @@ class BasicApiClient
 
   private 
   def handle_response(res)
+    self.last_response = res
     if res.success?
       @headers = res.headers.select { |k, v| AUTH_HEADERS.include?(k) }
+      JSON.parse(res.body)
     else
       @headers = {}
+      false
     end
-    JSON.parse(res.body) if @headers.keys.sort == AUTH_HEADERS
+  end
+
+  def auth_headers?
+    headers.keys.sort == AUTH_HEADERS
   end
 end

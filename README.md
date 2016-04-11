@@ -1,4 +1,11 @@
+# Instalation
+```
+gem install basic_api_client
+```
+
 ```ruby
+require 'basic_api_client'
+
 client = BasicApiClient.new("user.cn", "userpassword", "http://example.com", "/api/v1/auth/sign_in")
 
 client.authorize
